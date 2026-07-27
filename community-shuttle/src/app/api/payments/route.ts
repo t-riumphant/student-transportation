@@ -11,14 +11,9 @@ import { createClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 // Increase the body size limit to 10MB to handle base64 receipt screenshots.
-// Next.js default is 1MB which causes "network error" when a receipt image is included.
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: "10mb",
-    },
-  },
-};
+// App Router syntax — replaces the old Pages Router "export const config"
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
 
 // GET /api/payments?status=pending&parent_id=xxx
 export async function GET(request: NextRequest) {
