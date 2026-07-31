@@ -66,7 +66,7 @@ export default function LandingPage() {
       icon:    "👨‍👩‍👧",
       desc:    "Track your child's bus, receive notifications, report absences, and manage payments.",
       action:  "Parent Portal",
-      route:   "/parent/register",
+      route:   "/parent/Register",
       bg:      "bg-white",
       border:  "border-cyan-600",
       text:    "text-cyan-700",
@@ -77,7 +77,7 @@ export default function LandingPage() {
       icon:    "🚌",
       desc:    "Access your route manifest, start trips, mark boarding and delivery, and stream your GPS.",
       action:  "Driver Console",
-      route:   "/driver/register",
+      route:   "/driver/Register",
       bg:      "bg-white",
       border:  "border-cyan-600",
       text:    "text-cyan-700",
@@ -103,11 +103,11 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => router.push("/parent/register")}
+            <button onClick={() => router.push("/parent/Register")}
               className="text-slate-300 hover:text-white text-xs font-bold px-3 py-2 rounded-xl transition">
               Parent
             </button>
-            <button onClick={() => router.push("/driver/register")}
+            <button onClick={() => router.push("/driver/Register")}
               className="text-slate-300 hover:text-white text-xs font-bold px-3 py-2 rounded-xl transition">
               Driver
             </button>
@@ -148,11 +148,11 @@ export default function LandingPage() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <button onClick={() => router.push("/parent/register")}
+            <button onClick={() => router.push("/parent/Register")}
               className="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-[#0F172A] font-black px-8 py-4 rounded-2xl text-sm transition shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2">
               👨‍👩‍👧 Register as Parent
             </button>
-            <button onClick={() => router.push("/driver/register")}
+            <button onClick={() => router.push("/driver/Register")}
               className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-black px-8 py-4 rounded-2xl text-sm transition flex items-center justify-center gap-2">
               🚌 Register as Driver
             </button>
@@ -366,8 +366,8 @@ export default function LandingPage() {
           </p>
           <div className="flex items-center gap-4 text-[11px] font-bold text-slate-500">
             <button onClick={() => router.push("/admin")} className="hover:text-cyan-400 transition">Admin</button>
-            <button onClick={() => router.push("/parent/register")} className="hover:text-cyan-400 transition">Parent</button>
-            <button onClick={() => router.push("/driver/register")} className="hover:text-cyan-400 transition">Driver</button>
+            <button onClick={() => router.push("/parent/Register")} className="hover:text-cyan-400 transition">Parent</button>
+            <button onClick={() => router.push("/driver/Register")} className="hover:text-cyan-400 transition">Driver</button>
           </div>
         </div>
       </footer>
