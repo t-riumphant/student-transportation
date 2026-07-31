@@ -95,7 +95,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-cyan-500 rounded-xl flex items-center justify-center">
-              <span className="text-[#0F172A] font-black text-sm">CS</span>
+              <span className="text-[#0F172A] font-black text-sm">ST</span>
             </div>
             <div>
               <p className="text-white font-black text-sm leading-none">Student Transport</p>
@@ -338,11 +338,6 @@ export default function LandingPage() {
       {/* ── FOOTER ── */}
       <footer className="bg-[#0F172A] border-t border-slate-800 py-8 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-cyan-500 rounded-xl flex items-center justify-center">
-              <span className="text-[#0F172A] font-black text-xs">CS</span>
-            </div>
-          </div>
           <p className="text-slate-600 text-[11px]">
             © {new Date().getFullYear()} Student Transport Tanzania. All rights reserved.
           </p>
