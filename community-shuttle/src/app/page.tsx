@@ -342,10 +342,6 @@ export default function LandingPage() {
             <div className="w-8 h-8 bg-cyan-500 rounded-xl flex items-center justify-center">
               <span className="text-[#0F172A] font-black text-xs">CS</span>
             </div>
-            <div>
-              <p className="text-white font-black text-xs">Student Transporte</p>
-              <p className="text-slate-500 text-[10px]">Tanzania · School Transport Platform</p>
-            </div>
           </div>
           <p className="text-slate-600 text-[11px]">
             © {new Date().getFullYear()} Student Transport Tanzania. All rights reserved.
