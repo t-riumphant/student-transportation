@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
@@ -36,7 +35,7 @@ function getDistanceKm(lat1, lng1, lat2, lng2) {
 
 export default function DriverDashboard() {
   const router   = useRouter();
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
 
   // ── Auth ─────────────────────────────────────
   const [authReady,    setAuthReady]    = useState(false);
@@ -56,6 +55,7 @@ export default function DriverDashboard() {
   // ── GPS ──────────────────────────────────────
   const [gpsCoords,  setGpsCoords]  = useState({ lat: null, lng: null });
   const [gpsError,   setGpsError]   = useState(null);
+  const [nearSchool, setNearSchool] = useState(false);
   const gpsWatchRef = useRef(null);
 
   // ── Dev mode ─────────────────────────────────
@@ -97,7 +97,7 @@ export default function DriverDashboard() {
       setAuthReady(true);
     };
     verifySession();
-  }, [router, supabase]);
+  }, []);
 
   // ── FETCH STUDENTS ────────────────────────────
   const fetchStudents = useCallback(async (currentRouteGroup) => {
@@ -150,52 +150,35 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     if (!authReady || !driverId || !routeGroup) return;
-
-    const startSync = () => {
-      fetchStudents(routeGroup);
-      checkActiveTrip(driverId);
-      pollEmergencies();
-    };
-
-    const timeoutId = window.setTimeout(startSync, 0);
-    const intervalId = window.setInterval(pollEmergencies, 10000);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      window.clearInterval(intervalId);
-    };
+    fetchStudents(routeGroup);
+    checkActiveTrip(driverId);
+    pollEmergencies();
+    const interval = setInterval(pollEmergencies, 10000);
+    return () => clearInterval(interval);
   }, [authReady, driverId, routeGroup, fetchStudents, checkActiveTrip, pollEmergencies]);
 
+  // ── GPS WATCHER ───────────────────────────────
   useEffect(() => {
-    if (!authReady || !driverId || !routeGroup) return;
-
-    if (!navigator.geolocation) {
-      const timeoutId = window.setTimeout(() => {
-        setGpsError("GPS not available on this device.");
-      }, 0);
-      return () => window.clearTimeout(timeoutId);
+    if (!isTripActive || !tripId) {
+      if (gpsWatchRef.current) { navigator.geolocation.clearWatch(gpsWatchRef.current); gpsWatchRef.current = null; }
+      return;
     }
-
+    if (!navigator.geolocation) { setGpsError("GPS not available on this device."); return; }
     gpsWatchRef.current = navigator.geolocation.watchPosition(
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         setGpsCoords({ lat, lng }); setGpsError(null);
-
-        let nearestStation = "In Transit";
-        let minDist = 0.4;
-
+        const distToSchool = getDistanceKm(lat, lng, SCHOOL.lat, SCHOOL.lng);
+        setNearSchool(distToSchool < 0.5);
+        let nearestStation = "In Transit"; let minDist = 0.4;
         CHECKPOINTS.forEach(cp => {
           const d = getDistanceKm(lat, lng, cp.lat, cp.lng);
           if (d < minDist) { minDist = d; nearestStation = cp.name; }
         });
-
-        const newStatus = nearestStation !== "In Transit" ? "Approaching Station" : "En-Route";
+        const newStatus  = nearestStation !== "In Transit" ? "Approaching Station" : "En-Route";
         const newStation = nearestStation !== "In Transit" ? nearestStation : "Between Stations";
-
-        setShuttleStatus(newStatus);
-        setCurrentStation(newStation);
-
+        setShuttleStatus(newStatus); setCurrentStation(newStation);
         try {
           await fetch("/api/trips", {
             method: "PATCH", headers: { "Content-Type": "application/json" },
@@ -203,23 +186,20 @@ export default function DriverDashboard() {
           });
         } catch { /* silent */ }
       },
-      (error) => {
+      (err) => {
         let msg = "⚠️ GPS unavailable.";
-        if (error.code === 1) msg = "⚠️ Location permission denied. Allow location access in browser settings.";
-        else if (error.code === 2) msg = "⚠️ GPS signal unavailable. Move outdoors or enable location services.";
-        else if (error.code === 3) msg = "⚠️ GPS timed out. Move to an open area.";
+        if (err.code === 1) msg = "⚠️ Location permission denied. Allow location access in browser settings.";
+        else if (err.code === 2) msg = "⚠️ GPS signal unavailable. Move outdoors or enable location services.";
+        else if (err.code === 3) msg = "⚠️ GPS timed out. Move to an open area.";
         setGpsError(msg);
-        console.warn("GPS error code:", error.code, "| message:", error.message);
+        console.warn("GPS error code:", err.code, "| message:", err.message);
       },
       { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
     );
-
     return () => {
-      if (gpsWatchRef.current !== null) {
-        navigator.geolocation.clearWatch(gpsWatchRef.current);
-      }
+      if (gpsWatchRef.current) { navigator.geolocation.clearWatch(gpsWatchRef.current); gpsWatchRef.current = null; }
     };
-  }, [authReady, driverId, routeGroup, isTripActive, tripId]);
+  }, [isTripActive, tripId]);
 
   // ── HANDLERS ──────────────────────────────────
 
@@ -252,6 +232,17 @@ export default function DriverDashboard() {
         }
       }
       showToast(`🚀 ${routeType === "morning" ? "Morning" : "Evening"} trip started. GPS tracking active.`);
+
+      // Push notification to all parents on route — trip has started
+      const allStudentIds = students.map(s => s.id);
+      const startTitle = routeType === "morning"
+        ? "🚌 Morning Shuttle Started"
+        : "🚌 Evening Shuttle Started";
+      const startBody = routeType === "morning"
+        ? `${driverName} has started the morning route. The bus is on its way to pick up students.`
+        : `${driverName} has started the evening route. The bus is heading to school to pick up students.`;
+      await sendPushToParents(allStudentIds, startTitle, startBody, "trip-started");
+
     } catch { showToast("Network error. Please try again.", "error"); }
     finally { setTripLoading(false); }
   };
@@ -293,10 +284,22 @@ export default function DriverDashboard() {
               message:     notificationMsg,
             }),
           });
+
+          // Also send push notification to parents for end-trip
+          const endPushTitle = routeType === "morning"
+            ? "🏫 Child Arrived at School"
+            : "🏠 Child Reached Home Safely";
+          await sendPushToParents(
+            boardedStudentIds,
+            endPushTitle,
+            notificationMsg,
+            notificationType
+          );
         } catch { /* silent — don't block trip completion */ }
       }
       if (gpsWatchRef.current) { navigator.geolocation.clearWatch(gpsWatchRef.current); gpsWatchRef.current = null; }
-      setIsTripActive(false); setTripId(null); setGpsCoords({ lat: null, lng: null }); setAttendance({});
+      setIsTripActive(false); setTripId(null); setNearSchool(false);
+      setGpsCoords({ lat: null, lng: null }); setAttendance({});
       setShuttleStatus(routeType === "morning" ? "Arrived at School" : "Students Delivered");
       setCurrentStation("School Campus");
       showToast(routeType === "morning" ? "🏫 Morning trip complete. Parents notified." : "🏠 Evening trip complete. All students delivered.");
@@ -319,7 +322,15 @@ export default function DriverDashboard() {
         setAttendance(prev => ({ ...prev, [studentId]: { ...prev[studentId], checked_in: isCheckedIn } }));
         showToast("Check-in failed.", "error");
       } else if (!isCheckedIn) {
-        showToast(`✓ ${students.find(s => s.id === studentId)?.full_name} marked as boarded.`);
+        const studentName = students.find(s => s.id === studentId)?.full_name || "Your child";
+        showToast(`✓ ${studentName} marked as boarded.`);
+        // Push notification to parent — child has boarded (morning route)
+        await sendPushToParents(
+          [studentId],
+          "🛫 Child Boarded the Bus",
+          `${studentName} has boarded the shuttle. The bus is on the way to school.`,
+          "student-boarded"
+        );
       }
     } catch {
       setAttendance(prev => ({ ...prev, [studentId]: { ...prev[studentId], checked_in: isCheckedIn } }));
@@ -342,7 +353,15 @@ export default function DriverDashboard() {
         setAttendance(prev => ({ ...prev, [studentId]: { ...prev[studentId], checked_out: isCheckedOut } }));
         showToast("Check-out failed.", "error");
       } else if (!isCheckedOut) {
-        showToast(`✓ ${students.find(s => s.id === studentId)?.full_name} marked as delivered.`);
+        const studentName = students.find(s => s.id === studentId)?.full_name || "Your child";
+        showToast(`✓ ${studentName} marked as delivered.`);
+        // Push notification to parent — child delivered home (evening route)
+        await sendPushToParents(
+          [studentId],
+          "🏠 Child Delivered Home",
+          `${studentName} has been delivered home safely by ${driverName}.`,
+          "student-delivered"
+        );
       }
     } catch {
       setAttendance(prev => ({ ...prev, [studentId]: { ...prev[studentId], checked_out: isCheckedOut } }));
@@ -363,6 +382,18 @@ export default function DriverDashboard() {
 
   const handleLogout = async () => { await supabase.auth.signOut(); window.location.href = "/driver/register"; };
 
+  // ── PUSH NOTIFICATION HELPER ──────────────────────────────
+  // Sends a push notification to parents of the given students
+  const sendPushToParents = async (studentIds, title, body, tag) => {
+    if (!studentIds || studentIds.length === 0) return;
+    try {
+      await fetch("/api/push/send", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ student_ids: studentIds, title, body, tag }),
+      });
+    } catch { /* silent — push failure should not block trip actions */ }
+  };
+
   const canEndTrip = isTripActive && !tripLoading;
 
   // ── AUTH LOADING ──────────────────────────────
@@ -377,7 +408,8 @@ export default function DriverDashboard() {
     );
   }
 
-  const boardedCount = Object.values(attendance).filter(a => a.checked_in).length;
+  const boardedCount   = Object.values(attendance).filter(a => a.checked_in).length;
+  const deliveredCount = Object.values(attendance).filter(a => a.checked_out).length;
 
   return (
     <div className="min-h-screen bg-[#F1F5F9] pb-12">
