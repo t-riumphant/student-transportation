@@ -39,7 +39,7 @@ export default function LandingPage() {
     },
     {
       icon: "🚨",
-      title: "Emergency SOS",
+      title: "Emergency Alerts",
       desc: "Send an emergency alert to the supervisor and driver with one tap in any urgent situation.",
     },
     {
@@ -216,7 +216,7 @@ export default function LandingPage() {
                   "Register and submit payment receipt",
                   "Track the bus live on Google Maps",
                   "Receive push alerts for every trip event",
-                  "Report absences and send SOS alerts",
+                  "Report absences and send emergency alerts",
                 ],
               },
               {
