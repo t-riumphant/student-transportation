@@ -98,23 +98,9 @@ export default function LandingPage() {
               <span className="text-[#0F172A] font-black text-sm">CS</span>
             </div>
             <div>
-              <p className="text-white font-black text-sm leading-none">Community Shuttle</p>
+              <p className="text-white font-black text-sm leading-none">Student Transport</p>
               <p className="text-slate-400 text-[10px]">Tanzania</p>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => router.push("/parent/Register")}
-              className="text-slate-300 hover:text-white text-xs font-bold px-3 py-2 rounded-xl transition">
-              Parent
-            </button>
-            <button onClick={() => router.push("/driver/Register")}
-              className="text-slate-300 hover:text-white text-xs font-bold px-3 py-2 rounded-xl transition">
-              Driver
-            </button>
-            <button onClick={() => router.push("/admin")}
-              className="bg-cyan-500 hover:bg-cyan-400 text-[#0F172A] text-xs font-black px-4 py-2 rounded-xl transition">
-              Admin Login
-            </button>
           </div>
         </div>
       </nav>
@@ -141,7 +127,7 @@ export default function LandingPage() {
 
           {/* Subheadline */}
           <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
-            Community Shuttle connects parents, drivers, and school administrators
+            Student Transport connects parents, drivers, and school administrators
             on one platform — with live GPS tracking, instant notifications, and
             digital payment management.
           </p>
@@ -357,18 +343,13 @@ export default function LandingPage() {
               <span className="text-[#0F172A] font-black text-xs">CS</span>
             </div>
             <div>
-              <p className="text-white font-black text-xs">Community Shuttle</p>
+              <p className="text-white font-black text-xs">Student Transporte</p>
               <p className="text-slate-500 text-[10px]">Tanzania · School Transport Platform</p>
             </div>
           </div>
           <p className="text-slate-600 text-[11px]">
-            © {new Date().getFullYear()} Community Shuttle Tanzania. All rights reserved.
+            © {new Date().getFullYear()} Student Transport Tanzania. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 text-[11px] font-bold text-slate-500">
-            <button onClick={() => router.push("/admin")} className="hover:text-cyan-400 transition">Admin</button>
-            <button onClick={() => router.push("/parent/Register")} className="hover:text-cyan-400 transition">Parent</button>
-            <button onClick={() => router.push("/driver/Register")} className="hover:text-cyan-400 transition">Driver</button>
-          </div>
         </div>
       </footer>
 
