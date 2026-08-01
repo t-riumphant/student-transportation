@@ -380,7 +380,7 @@ export default function DriverDashboard() {
     } catch { /* silent */ }
   };
 
-  const handleLogout = async () => { await supabase.auth.signOut(); window.location.href = "/driver/register"; };
+  const handleLogout = async () => { await supabase.auth.signOut(); window.location.href = "/driver/Register"; };
 
   // ── PUSH NOTIFICATION HELPER ──────────────────────────────
   // Sends a push notification to parents of the given students
