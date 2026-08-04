@@ -445,17 +445,6 @@ export default function DriverDashboard() {
               <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse inline-block" />LIVE
             </span>
           )}
-          {/* Dev mode toggle */}
-          <button
-            onClick={() => setDevMode(prev => !prev)}
-            className={`text-xs font-black px-3 py-1.5 rounded-xl border transition ${
-              devMode
-                ? "bg-amber-500 text-[#0F172A] border-amber-400"
-                : "bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500"
-            }`}
-          >
-            🧪 DEV
-          </button>
           <button
             onClick={handleLogout}
             className="text-sm font-bold text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 px-4 py-1.5 rounded-xl transition"
