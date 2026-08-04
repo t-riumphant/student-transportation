@@ -277,7 +277,7 @@ export default function ParentDashboard() {
   }, [authReady, regStatus, paymentStatus, userId]);
 
   // ── HANDLERS ──────────────────────────────────
-  const handleLogout = async () => { await supabase.auth.signOut(); window.location.href = "/parent/Register"; };
+  const handleLogout = async () => { await supabase.auth.signOut(); window.location.href = "/parent/register"; };
 
   const handleReportAbsence = async (e) => {
     e.preventDefault();
@@ -501,14 +501,14 @@ export default function ParentDashboard() {
       {/* Main layout — sidebar + content */}
       <div className="flex flex-1">
 
-        {/* Left Sidebar Nav */}
-        <aside className="w-56 shrink-0 bg-[#0F172A] border-r border-slate-800 flex flex-col py-6 px-3 justify-between min-h-full">
+        {/* Left Sidebar Nav — desktop only */}
+        <aside className="hidden lg:flex w-56 shrink-0 bg-[#0F172A] border-r border-slate-800 flex-col py-6 px-3 justify-between min-h-full">
           <div className="flex flex-col gap-1">
             {[
               { id: "tracker",   label: "🗺️ Tracker",   activeColor: "bg-cyan-500 text-[#0F172A]" },
-              { id: "absence",   label: "📅 Absence Reporting",   activeColor: "bg-amber-500 text-white" },
-              { id: "emergency", label: "🚨 Emergency Alert",        activeColor: "bg-red-600 text-white" },
-              { id: "payment",   label: "💳 Manage Payment",   activeColor: "bg-violet-600 text-white" },
+              { id: "absence",   label: "📅 Absence",   activeColor: "bg-amber-500 text-white" },
+              { id: "emergency", label: "🚨 SOS",        activeColor: "bg-red-600 text-white" },
+              { id: "payment",   label: "💳 Payment",   activeColor: "bg-violet-600 text-white" },
             ].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black transition-all text-left w-full ${
@@ -532,43 +532,66 @@ export default function ParentDashboard() {
           </div>
         </aside>
 
+        {/* Bottom Tab Bar — mobile only */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0F172A] border-t border-slate-800 flex items-center justify-around px-2 py-2">
+          {[
+            { id: "tracker",   icon: "🗺️", label: "Tracker",  activeColor: "text-cyan-400" },
+            { id: "absence",   icon: "📅", label: "Absence",  activeColor: "text-amber-400" },
+            { id: "emergency", icon: "🚨", label: "SOS",       activeColor: "text-red-400" },
+            { id: "payment",   icon: "💳", label: "Payment",  activeColor: "text-violet-400" },
+          ].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${
+                activeTab === tab.id ? tab.activeColor : "text-slate-500"
+              }`}>
+              <span className="text-xl">{tab.icon}</span>
+              <span className="text-[10px] font-black">{tab.label}</span>
+            </button>
+          ))}
+          <button onClick={handleLogout}
+            className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-slate-500">
+            <span className="text-xl">🚪</span>
+            <span className="text-[10px] font-black">Logout</span>
+          </button>
+        </div>
+
         {/* Main Content */}
         <main className="flex-1 bg-[#F1F5F9] overflow-auto">
-          <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+          <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4 lg:py-6 pb-24 lg:pb-6 space-y-4 lg:space-y-6">
 
             {/* STAT CARDS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 font-black">Live Shuttle</p>
-                <p className="mt-3 font-black text-slate-900 text-xl">{tripActive ? "En Route" : "No Active Trip"}</p>
-                <p className="text-sm text-slate-500 mt-2">{tripActive ? shuttleStatus : "Awaiting next departure"}</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                <p className="text-[9px] uppercase tracking-widest text-slate-400 font-black">Live Shuttle</p>
+                <p className="mt-2 font-black text-slate-900 text-base leading-tight">{tripActive ? "En Route" : "No Active Trip"}</p>
+                <p className="text-xs text-slate-500 mt-1">{tripActive ? shuttleStatus : "Awaiting departure"}</p>
               </div>
-              <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 font-black">Current Stop</p>
-                <p className="mt-3 font-black text-slate-900 text-xl">{currentStation}</p>
-                <p className="text-sm text-slate-500 mt-2">My child: {myChildStation}</p>
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                <p className="text-[9px] uppercase tracking-widest text-slate-400 font-black">Current Stop</p>
+                <p className="mt-2 font-black text-slate-900 text-base leading-tight">{currentStation}</p>
+                <p className="text-xs text-slate-500 mt-1">Stop: {myChildStation}</p>
               </div>
-              <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 font-black">Child Status</p>
-                <p className="mt-3 font-black text-slate-900 text-xl">{boardingStatus === "none" ? "Awaiting Bus" : boardingStatus === "boarded" ? "Boarded" : "Delivered"}</p>
-                <p className="text-sm text-slate-500 mt-2">{boardingStatus === "boarded" ? `${studentName} is on the bus` : boardingStatus === "delivered" ? `${studentName} has been delivered` : "Waiting for boarding update"}</p>
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                <p className="text-[9px] uppercase tracking-widest text-slate-400 font-black">Child Status</p>
+                <p className="mt-2 font-black text-slate-900 text-base leading-tight">{boardingStatus === "none" ? "Awaiting Bus" : boardingStatus === "boarded" ? "Boarded" : "Delivered"}</p>
+                <p className="text-xs text-slate-500 mt-1">{boardingStatus === "boarded" ? "On the bus" : boardingStatus === "delivered" ? "Delivered home" : "Waiting update"}</p>
               </div>
-              <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 font-black">Payment</p>
-                <p className={`mt-3 font-black text-xl ${
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                <p className="text-[9px] uppercase tracking-widest text-slate-400 font-black">Payment</p>
+                <p className={`mt-2 font-black text-base leading-tight ${
                   paymentStatus === "approved" ? "text-emerald-600" :
                   paymentStatus === "pending"  ? "text-amber-600" :
                   paymentStatus === "rejected" ? "text-red-600" : "text-slate-800"
                 }`}>
                   {paymentStatus === "none" ? "Not Submitted" : paymentStatus}
                 </p>
-                <p className="text-sm text-slate-500 mt-2">{paymentStatus === "approved" ? "Live tracking enabled" : "Submit receipt to activate"}</p>
+                <p className="text-xs text-slate-500 mt-1">{paymentStatus === "approved" ? "Tracking enabled" : "Submit receipt"}</p>
               </div>
             </div>
 
             {/* ── TRACKER TAB ── */}
             {activeTab === "tracker" && (
-              <div className="grid gap-6 lg:grid-cols-[1.75fr_1fr]">
+              <div className="grid gap-4 lg:grid-cols-[1.75fr_1fr]">
                 <div className="space-y-6">
 
                   {/* MORNING end trip notification */}
@@ -691,10 +714,11 @@ export default function ParentDashboard() {
                           key={`${driverLat.toFixed(4)}-${driverLng.toFixed(4)}`}
                           title="Live Bus Location" width="100%" height="280"
                           src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBiuyPWtUpEzy7gt3-ufPAiVakhJgnf3OE&q=${driverLat},${driverLng}&center=${driverLat},${driverLng}&zoom=16&maptype=roadmap`}
+                          className="w-full" height="220"
                           style={{ border: 0 }} loading="lazy" allowFullScreen
                         />
                       ) : (
-                        <div className="h-72 grid place-items-center text-slate-500 text-sm">
+                        <div className="h-48 lg:h-72 grid place-items-center text-slate-500 text-sm text-center px-4">
                           {tripActive ? "Waiting for GPS data..." : "No active trip. Map will show when the bus is in motion."}
                         </div>
                       )}
@@ -741,9 +765,9 @@ export default function ParentDashboard() {
 
             {/* ── ABSENCE TAB ── */}
             {activeTab === "absence" && (
-              <div className="max-w-lg">
-                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                  <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-5">
+              <div className="w-full lg:max-w-lg">
+                <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">📅</div>
                       <div>
@@ -792,9 +816,9 @@ export default function ParentDashboard() {
 
             {/* ── EMERGENCY TAB ── */}
             {activeTab === "emergency" && (
-              <div className="max-w-lg">
-                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                  <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5">
+              <div className="w-full lg:max-w-lg">
+                <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-red-600 to-red-700 px-5 py-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">🚨</div>
                       <div>
@@ -854,9 +878,9 @@ export default function ParentDashboard() {
 
             {/* ── PAYMENT TAB ── */}
             {activeTab === "payment" && (
-              <div className="max-w-lg">
-                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                  <div className="bg-gradient-to-r from-violet-600 to-violet-800 px-6 py-5">
+              <div className="w-full lg:max-w-lg">
+                <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-violet-600 to-violet-800 px-5 py-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">💳</div>
                       <div>
