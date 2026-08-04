@@ -449,7 +449,7 @@ export default function DriverDashboard() {
             onClick={handleLogout}
             className="text-sm font-bold text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 px-4 py-1.5 rounded-xl transition"
           >
-            Logout
+            🚪Logout
           </button>
         </div>
       </header>
