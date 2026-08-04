@@ -74,10 +74,10 @@ export default function ParentDashboard() {
   useEffect(() => {
     const verifySession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { router.replace("/parent/register"); return; }
+      if (!session) { router.replace("/parent/Register"); return; }
       const { data: profileData, error } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
       if (error || !profileData || profileData.role !== "parent") {
-        await supabase.auth.signOut(); router.replace("/parent/register"); return;
+        await supabase.auth.signOut(); router.replace("/parent/Register"); return;
       }
       const uid = session.user.id;
       setUserId(uid); setRegStatus(profileData.status);
@@ -277,7 +277,7 @@ export default function ParentDashboard() {
   }, [authReady, regStatus, paymentStatus, userId]);
 
   // ── HANDLERS ──────────────────────────────────
-  const handleLogout = async () => { await supabase.auth.signOut(); window.location.href = "/parent/register"; };
+  const handleLogout = async () => { await supabase.auth.signOut(); window.location.href = "/parent/Register"; };
 
   const handleReportAbsence = async (e) => {
     e.preventDefault();
