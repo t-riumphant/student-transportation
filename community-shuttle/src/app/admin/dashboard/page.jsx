@@ -1,9 +1,7 @@
-/* eslint-disable react/no-unescaped-entities, @typescript-eslint/no-unused-vars, @next/next/no-img-element */
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import Image from "next/image";
 
 // ─────────────────────────────────────────────────────────────
 // FILE: src/app/admin/dashboard/page.jsx
@@ -27,13 +25,13 @@ function SectionCard({ children, accent = "border-cyan-500", className = "" }) {
 
 function StatTile({ label, value, color, icon }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center text-xl shrink-0`}>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 lg:p-5 flex items-center gap-3">
+      <div className={`w-9 h-9 lg:w-12 lg:h-12 rounded-xl ${color} flex items-center justify-center text-base lg:text-xl shrink-0`}>
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-black text-slate-900 leading-none">{value}</p>
-        <p className="text-xs text-slate-500 font-medium mt-0.5">{label}</p>
+        <p className="text-lg lg:text-2xl font-black text-slate-900 leading-none">{value}</p>
+        <p className="text-[10px] lg:text-xs text-slate-500 font-medium mt-0.5">{label}</p>
       </div>
     </div>
   );
@@ -100,8 +98,8 @@ export default function AdminDashboard() {
       if (!res.ok) throw new Error(payload.error || payload.message || res.statusText || `Unable to delete ${label}`);
       showToast(`${label} deleted.`);
       fetchDashboardData();
-    } catch {
-      console.error("Failed to load dashboard data");
+    } catch (error) {
+      showToast(error.message || `Failed to delete ${label}.`, "error");
     } finally {
       setDeleteTarget(null);
     }
@@ -123,7 +121,7 @@ export default function AdminDashboard() {
       setAuthReady(true);
     };
     verifySession();
-  }, [router, supabase]);
+  }, []);
 
   // ── FETCH DATA ────────────────────────────────
   const fetchDashboardData = useCallback(async () => {
@@ -144,7 +142,7 @@ export default function AdminDashboard() {
       if (approvedPaymentsRes.ok) setApprovedPayments(await approvedPaymentsRes.json());
       if (studentsRes.ok)         setStudents(await studentsRes.json());
       if (todayAbsencesRes.ok)    setAbsenceLogs(await todayAbsencesRes.json());
-      if (allAbsencesRes.ok)      setAllAbsenceLogs(await allAbsenceLogsRes.json());
+      if (allAbsencesRes.ok)      setAllAbsenceLogs(await allAbsencesRes.json());
       if (emergenciesRes.ok)      setActiveEmergencies(await emergenciesRes.json());
       if (driversRes.ok)          setDrivers(await driversRes.json());
       const pendingStudentsRes = await fetch("/api/students?active=false");
@@ -154,8 +152,8 @@ export default function AdminDashboard() {
         ps.forEach(s => { map[s.parent_id] = s.full_name; });
         setPendingStudentMap(map);
       }
-    } catch (error) {
-      console.error("Dashboard fetch error:", error);
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
     } finally {
       setDataLoading(false);
     }
@@ -301,7 +299,7 @@ export default function AdminDashboard() {
 
       {/* ════ REGISTER STUDENT FORM ════ */}
       {viewMode === "register_student" && (
-        <main className="max-w-xl mx-auto px-4 py-8">
+        <main className="w-full max-w-xl mx-auto px-4 py-4 lg:py-8">
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-[#0F172A] px-6 py-5">
               <p className="text-cyan-400 text-[10px] font-black uppercase tracking-widest">Admin Action</p>
@@ -365,8 +363,8 @@ export default function AdminDashboard() {
       {viewMode === "dashboard" && (
         <div className="flex flex-1 w-full">
 
-          {/* ── VERTICAL SIDEBAR NAV ── */}
-          <aside className="shrink-0 bg-[#0F172A] border-r border-slate-800 flex flex-col py-6 px-2 gap-1 min-h-full justify-between">
+          {/* ── VERTICAL SIDEBAR NAV — desktop only ── */}
+          <aside className="hidden lg:flex shrink-0 bg-[#0F172A] border-r border-slate-800 flex-col py-6 px-2 gap-1 min-h-full justify-between">
             {/* Nav tabs */}
             <div className="flex flex-col gap-1">
               {tabs.map(tab => (
@@ -386,7 +384,6 @@ export default function AdminDashboard() {
                 </button>
               ))}
             </div>
-
             {/* Supervisor info + logout at bottom */}
             <div className="flex flex-col gap-2 pt-4 border-t border-slate-800">
               <div className="px-3 py-2">
@@ -401,8 +398,31 @@ export default function AdminDashboard() {
             </div>
           </aside>
 
+          {/* ── BOTTOM TAB BAR — mobile only ── */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0F172A] border-t border-slate-800 flex items-center justify-around px-1 py-2">
+            {tabs.map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                className={`relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all ${
+                  activeTab === tab.id ? "text-cyan-400" : "text-slate-500"
+                }`}>
+                <span className="text-lg">{tab.icon}</span>
+                <span className="text-[9px] font-black">{tab.label}</span>
+                {tab.badge !== null && (
+                  <span className={`absolute -top-1 -right-1 ${tab.badgeColor} text-white text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-full`}>
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            ))}
+            <button onClick={handleLogout}
+              className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-slate-500">
+              <span className="text-lg">🚪</span>
+              <span className="text-[9px] font-black">Logout</span>
+            </button>
+          </div>
+
           {/* ── MAIN CONTENT AREA ── */}
-        <main className="flex-1 px-6 py-6 overflow-auto min-w-0 bg-[#F1F5F9]">
+        <main className="flex-1 px-3 lg:px-6 py-4 lg:py-6 pb-24 lg:pb-6 overflow-auto min-w-0 bg-[#F1F5F9]">
 
           {dataLoading && (
             <div className="flex items-center justify-center py-20 gap-3 text-slate-400 text-sm">
@@ -431,7 +451,7 @@ export default function AdminDashboard() {
                       <span className="text-xs font-mono text-slate-500">{new Date(alert.created_at).toLocaleTimeString()}</span>
                     </div>
                     <h2 className="text-xl font-black text-white mb-3">{alert.title}</h2>
-                    <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
                       {[{ label: "From", val: alert.profiles?.full_name ?? "Unknown" }, { label: "Contact", val: alert.profiles?.phone ?? "—" }, { label: "Route", val: alert.profiles?.route_group ?? "—" }].map(({ label, val }) => (
                         <div key={label} className="bg-slate-800 rounded-xl px-3 py-2.5">
                           <p className="text-[10px] text-slate-500 font-medium">{label}</p>
@@ -456,7 +476,7 @@ export default function AdminDashboard() {
               ))}
 
               {/* Stat tiles */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <StatTile label="Pending Approvals"  value={pendingProfiles.length}  color="bg-amber-100"   icon="⏳" />
                 <StatTile label="Pending Payments"   value={pendingPayments.length}  color="bg-rose-100"    icon="💳" />
                 <StatTile label="Active Students"    value={students.length}         color="bg-cyan-100"    icon="🎒" />
@@ -464,7 +484,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Quick navigation cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
                   { tab: "approvals", title: "Approvals", desc: `${pendingProfiles.length} profiles · ${pendingPayments.length} payments pending`, icon: "✅", color: "border-amber-400", badge: pendingProfiles.length + pendingPayments.length },
                   { tab: "ledgers",   title: "Ledgers",   desc: `${students.length} students · ${drivers.length} drivers registered`, icon: "🗂️", color: "border-cyan-500", badge: null },
@@ -492,7 +512,7 @@ export default function AdminDashboard() {
               TAB 2 — APPROVALS
           ══════════════════════════════════════ */}
           {activeTab === "approvals" && !dataLoading && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               {/* Profile Approvals */}
               <SectionCard accent="border-amber-400">
@@ -632,7 +652,7 @@ export default function AdminDashboard() {
                     + Register
                   </button>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto -mx-0">
                   {students.length === 0 ? (
                     <div className="text-center py-12 text-slate-400 text-xs font-medium">No active students yet</div>
                   ) : (
@@ -732,7 +752,7 @@ export default function AdminDashboard() {
               TAB 4 — ABSENCES
           ══════════════════════════════════════ */}
           {activeTab === "absences" && !dataLoading && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               {/* Today's Absences */}
               <SectionCard accent="border-orange-400">
